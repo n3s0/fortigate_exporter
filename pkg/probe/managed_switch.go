@@ -232,9 +232,16 @@ func probeManagedSwitch(c http.FortiHTTP, meta *TargetMetadata) ([]prometheus.Me
 		Results []Results `json:"results"`
 	}
 
+	var api_path string
+	if meta.VersionMajor < 7 || (meta.VersionMajor == 7 && meta.VersionMinor <= 0) {
+		api_path = "api/v2/monitor/switch-controller/managed-switch"
+	} else {
+		api_path = "api/v2/monitor/switch-controller/managed-switch/status"
+	}
+
 	// Consider implementing pagination to remove this limit of 1000 entries
 	var response managedResponse
-	if err := c.Get("api/v2/monitor/switch-controller/managed-switch", "vdom=*&start=0&poe=true&port_stats=true&transceiver=true&count=1000", &response); err != nil {
+	if err := c.Get(api_path, "vdom=*&start=0&poe=true&port_stats=true&transceiver=true&count=1000", &response); err != nil {
 		log.Printf("Error: %v", err)
 		return nil, false
 	}

@@ -5,6 +5,7 @@
 
 # Artifacts
 fortigate_exporter
+fortigate-key.yaml
 *.exe
 
 # coverage
