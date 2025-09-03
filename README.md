@@ -272,15 +272,30 @@ Per-VDOM, managed switch and interface:
 
 Example:
 
-```
+```sh
 $ ./fortigate_exporter -auth-file ~/fortigate-key.yaml
 # or
 $ docker run -d -p 9710:9710 -v /path/to/fortigate-key.yaml:/config/fortigate-key.yaml quay.io/prometheuscommunity/fortigate_exporter:master
 ```
 
+Docker container; either in Docker or Podman can be built locally without using
+make.
+
+```sh
+podman -t fortigate_exporter .
+```
+
+Run through either podman or docker.
+
+```sh
+podman run -d -p 9710:9710 --name fortigate_exporter -v /path/to/fortigate-key.yaml:/config/fortigate-key.yaml fortigate_exporter:latest
+# or
+docker run -d -p 9710:9710 --name fortigate_exporter -v /path/to/fortigate-key.yaml:/config/fortigate-key.yaml fortigate_exporter:latest
+```
+
 Where `fortigate-key.yaml` contains pairs of FortiGate targets and API keys in the following format:
 
-```
+```yaml
 "https://my-fortigate":
   token: api-key-goes-here
   # If you have a smaller fortigate unit you might want
@@ -306,7 +321,7 @@ You can select which probes you want to run on a per target basis.
 
 Example:
 
-```
+```yaml
 "https://my-fortigate":
   token: api-key-goes-here
   probes:
