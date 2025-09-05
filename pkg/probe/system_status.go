@@ -23,28 +23,51 @@ import (
 
 func probeSystemStatus(c http.FortiHTTP, meta *TargetMetadata) ([]prometheus.Metric, bool) {
 	var (
-		mVersion = prometheus.NewDesc(
-			"fortigate_version_info",
-			"System version and build information",
-			[]string{"serial", "version", "build"}, nil,
+		mSystemStatusInfo = prometheus.NewDesc(
+			"fortigate_system_status_info",
+			"Info about the system status.",
+			[]string{"hostname", "status", "serial"}, nil,
+		)
+		mSystemVersionInfo = prometheus.NewDesc(
+			"fortigate_system_version_info",
+			"Info about the fortios version",
+			[]string{"version", "build"}, nil,
+		)
+		mSystemHardwareInfo = prometheus.NewDesc(
+			"fortigate_system_hardware_info",
+			"Info about the make and model.",
+			[]string{"model_name", "model_number", "model"}, nil,
 		)
 	)
 
-	type systemStatus struct {
-		Status  string
-		Serial  string
-		Version string
-		Build   int64
+	type Result struct {
+		ModelName   string `json:"model_name"`
+		ModelNumber string `json:"model_number"`
+		Model		string `json:"model"`
+		Hostname	string `json:"hostname"`
 	}
-	var st systemStatus
+
+	type SystemStatus struct {
+		Result  Result `json:"results"`
+		Status   string `json:"status"`
+		Serial   string `json:"serial"`
+		Version  string `json:"version"`
+		Build    int64 `json:"build"`
+	}
+	var st SystemStatus
 
 	if err := c.Get("api/v2/monitor/system/status", "", &st); err != nil {
 		log.Printf("Error: %v", err)
 		return nil, false
 	}
 
-	m := []prometheus.Metric{
-		prometheus.MustNewConstMetric(mVersion, prometheus.GaugeValue, 1.0, st.Serial, st.Version, fmt.Sprintf("%d", st.Build)),
-	}
+	m := []prometheus.Metric{}
+	m = append(m, prometheus.MustNewConstMetric(mSystemStatusInfo, prometheus.GaugeValue, 1.0, 
+			st.Result.Hostname, st.Status, st.Serial))
+	m = append(m, prometheus.MustNewConstMetric(mSystemVersionInfo, prometheus.GaugeValue, 1.0, 
+			st.Version, fmt.Sprintf("%d", st.Build)))
+	m = append(m, prometheus.MustNewConstMetric(mSystemHardwareInfo, prometheus.GaugeValue, 1.0, 
+			st.Result.ModelName, st.Result.ModelNumber, st.Result.Model))
+
 	return m, true
 }
